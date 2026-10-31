@@ -54,3 +54,5 @@ Thumbs.db
 .open-next/
 .wrangler/
 .dev.vars
+
+graphify-out/

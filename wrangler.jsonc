@@ -10,8 +10,11 @@
     "binding": "ASSETS"
   },
   "workers_dev": true,
-  "observability": { "enabled": true }
-  // SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY van como secretos:
+  "observability": { "enabled": true },
+  // Sin esto, cada `wrangler deploy` borra las variables de texto creadas en el panel.
+  "keep_vars": true
+  // SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY van como secretos de runtime del Worker
+  // (Settings → Variables and Secrets, tipo Secret), no como variables de build:
   //   npx wrangler secret put SUPABASE_URL
   //   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 }
