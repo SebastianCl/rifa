@@ -46,3 +46,6 @@ Thumbs.db
 
 # pnpm store local
 .pnpm-store/
+
+# Claude Code skill links (machine-specific symlinks to .agents/skills)
+.claude/skills/
