@@ -62,17 +62,22 @@ export async function updateRaffle(id: string, patch: RaffleUpdate): Promise<Raf
 }
 
 type ReserveInput = { number: number; buyer_name: string; buyer_phone: string; status?: TicketStatus };
+type ReserveManyInput = { numbers: number[]; buyer_name: string; buyer_phone: string; status?: TicketStatus };
 
-/** Inserta la boleta. La PK (raffle_id, number) garantiza que no haya dobles reservas. */
-export async function reserveTicket(raffleId: string, input: ReserveInput): Promise<'ok' | 'taken'> {
+/** Inserta las boletas en una sola sentencia: si alguna ya está tomada, no se guarda ninguna. La PK (raffle_id, number) evita dobles reservas. */
+export async function reserveTickets(raffleId: string, input: ReserveManyInput): Promise<'ok' | 'taken'> {
   const status = input.status ?? 'reserved';
-  const { error } = await getSupabase().from('tickets').insert({
-    raffle_id: raffleId, number: input.number, buyer_name: input.buyer_name, buyer_phone: input.buyer_phone,
-    status, paid_at: status === 'paid' ? new Date().toISOString() : null
-  });
+  const paidAt = status === 'paid' ? new Date().toISOString() : null;
+  const { error } = await getSupabase().from('tickets').insert(input.numbers.map(number => ({
+    raffle_id: raffleId, number, buyer_name: input.buyer_name, buyer_phone: input.buyer_phone, status, paid_at: paidAt
+  })));
   if (!error) return 'ok';
   if (error.code === UNIQUE_VIOLATION) return 'taken';
   throw error;
+}
+
+export function reserveTicket(raffleId: string, { number, ...rest }: ReserveInput): Promise<'ok' | 'taken'> {
+  return reserveTickets(raffleId, { ...rest, numbers: [number] });
 }
 
 /** Devuelve false si la boleta ya no existe. */

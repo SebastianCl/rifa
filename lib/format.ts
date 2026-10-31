@@ -3,6 +3,12 @@ const DEFAULT_COUNTRY_CODE = '57';
 
 export const formatNumber = (n: number) => n.toString().padStart(2, '0');
 
+/** "01", "01 y 05" o "01, 05 y 12", en orden ascendente. */
+export function formatNumberList(numbers: number[]): string {
+  const items = [...numbers].sort((a, b) => a - b).map(formatNumber);
+  return items.length > 1 ? `${items.slice(0, -1).join(', ')} y ${items[items.length - 1]}` : items[0] ?? '';
+}
+
 export const money = (amount: number, currency = 'COP') =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
 

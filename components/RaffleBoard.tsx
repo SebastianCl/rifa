@@ -3,7 +3,8 @@
 import { useMemo, useRef, useState } from 'react';
 import type { PublicTicket, Raffle, RaffleStatus, TicketStatus } from '@/lib/types';
 import { ALL_NUMBERS, TOTAL_NUMBERS } from '@/lib/types';
-import { formatNumber, whatsappLink } from '@/lib/format';
+import { formatNumber, formatNumberList, whatsappLink } from '@/lib/format';
+import { MAX_NUMBERS_PER_RESERVATION } from '@/lib/validation';
 
 type Props = { raffle: Raffle; initialTickets: PublicTicket[] };
 type Filter = 'all' | 'available' | 'taken';
@@ -12,13 +13,13 @@ type TicketsResponse = { status?: RaffleStatus; tickets?: PublicTicket[]; error?
 export default function RaffleBoard({ raffle, initialTickets }: Props) {
   const [tickets, setTickets] = useState<PublicTicket[]>(initialTickets);
   const [status, setStatus] = useState<RaffleStatus>(raffle.status);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [filter, setFilter] = useState<Filter>('available');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [reservedNumber, setReservedNumber] = useState<number | null>(null);
+  const [reservedNumbers, setReservedNumbers] = useState<number[]>([]);
   const nameInput = useRef<HTMLInputElement>(null);
 
   const taken = useMemo(() => new Map<number, TicketStatus>(tickets.map(t => [t.number, t.status])), [tickets]);
@@ -41,7 +42,10 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
 
   const choose = (number: number) => {
     if (taken.has(number) || closed) return;
-    setSelected(number); setError(''); setReservedNumber(null);
+    setError(''); setReservedNumbers([]);
+    if (selected.includes(number)) { setSelected(selected.filter(n => n !== number)); return; }
+    if (selected.length >= MAX_NUMBERS_PER_RESERVATION) { setError(`Puedes separar hasta ${MAX_NUMBERS_PER_RESERVATION} números a la vez.`); return; }
+    setSelected([...selected, number]);
   };
 
   const goToForm = () => {
@@ -51,22 +55,22 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
 
   const reserve = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (selected === null || !name.trim() || !phone.trim()) return;
+    if (selected.length === 0 || !name.trim() || !phone.trim()) return;
     setSaving(true); setError('');
     try {
       const response = await fetch(`/api/raffles/${raffle.slug}/tickets`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: selected, name: name.trim(), phone: phone.trim() })
+        body: JSON.stringify({ numbers: selected, name: name.trim(), phone: phone.trim() })
       });
       const data = (await response.json().catch(() => ({}))) as TicketsResponse;
       if (!response.ok) {
-        setError(data.error || 'No se pudo separar el número. Intenta de nuevo.');
+        setError(data.error || 'No se pudo separar tu selección. Intenta de nuevo.');
         await refresh();
-        if (response.status === 409) setSelected(null);
+        if (response.status === 409) setSelected([]);
         return;
       }
       applyResponse(data);
-      setReservedNumber(selected); setSelected(null); setName(''); setPhone('');
+      setReservedNumbers(selected); setSelected([]); setName(''); setPhone('');
     } catch {
       setError('No hay conexión. Revisa tu internet e intenta de nuevo.');
     } finally {
@@ -74,8 +78,9 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
     }
   };
 
-  const organizerMessage = reservedNumber !== null
-    ? `Hola ${raffle.organizer_name}, separé el número ${formatNumber(reservedNumber)} de la rifa "${raffle.title}". ¿Cómo coordinamos el pago?`
+  const reservedPlural = reservedNumbers.length > 1;
+  const organizerMessage = reservedNumbers.length > 0
+    ? `Hola ${raffle.organizer_name}, separé ${reservedPlural ? 'los números' : 'el número'} ${formatNumberList(reservedNumbers)} de la rifa "${raffle.title}". ¿Cómo coordinamos el pago?`
     : '';
 
   return (
@@ -83,8 +88,8 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Participa aquí</p>
-          <h2>Escoge tu número</h2>
-          <p className="subheading">{closed ? 'Esta rifa ya cerró. Gracias a todos los que participaron.' : 'Toca un número disponible para separarlo.'}</p>
+          <h2>Escoge tus números</h2>
+          <p className="subheading">{closed ? 'Esta rifa ya cerró. Gracias a todos los que participaron.' : 'Toca uno o varios números disponibles para separarlos.'}</p>
         </div>
         <div className="count"><strong>{available}</strong><span>disponibles</span></div>
       </div>
@@ -104,10 +109,10 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
           return (
             <button
               type="button" key={number}
-              className={['ticket', isTaken ? `taken ${ticketStatus}` : '', selected === number ? 'selected' : ''].filter(Boolean).join(' ')}
+              className={['ticket', isTaken ? `taken ${ticketStatus}` : '', selected.includes(number) ? 'selected' : ''].filter(Boolean).join(' ')}
               onClick={() => choose(number)} disabled={isTaken || closed}
               aria-label={`Número ${formatNumber(number)}${isTaken ? `, ${tag.toLowerCase()}` : ''}`}
-              aria-pressed={isTaken ? undefined : selected === number}
+              aria-pressed={isTaken ? undefined : selected.includes(number)}
             >
               {formatNumber(number)}{isTaken && <small aria-hidden="true">{tag}</small>}
             </button>
@@ -115,9 +120,9 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
         })}
       </div>
 
-      {selected !== null && !closed && (
+      {selected.length > 0 && !closed && (
         <div className="pick-bar">
-          <p>Elegiste el <strong>{formatNumber(selected)}</strong></p>
+          <p>{selected.length > 1 ? 'Elegiste los' : 'Elegiste el'} <strong>{formatNumberList(selected)}</strong></p>
           <button type="button" className="btn" onClick={goToForm}>Continuar →</button>
         </div>
       )}
@@ -126,9 +131,9 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
         <div className="reserve-intro">
           <span className="ticket-icon" aria-hidden="true">🎟</span>
           <div>
-            <p className="eyebrow">Tu número de la suerte</p>
-            <h2>{selected === null ? 'Selecciona un número' : `Número ${formatNumber(selected)}`}</h2>
-            <p>{closed ? 'La rifa está cerrada y ya no recibe reservas.' : selected === null ? 'Toca cualquier número disponible del tablero para comenzar.' : `Déjanos tus datos y ${raffle.organizer_name} te contactará para confirmar el pago.`}</p>
+            <p className="eyebrow">{selected.length > 1 ? 'Tus números de la suerte' : 'Tu número de la suerte'}</p>
+            <h2>{selected.length === 0 ? 'Selecciona tus números' : `${selected.length > 1 ? 'Números' : 'Número'} ${formatNumberList(selected)}`}</h2>
+            <p>{closed ? 'La rifa está cerrada y ya no recibe reservas.' : selected.length === 0 ? 'Toca uno o varios números disponibles del tablero para comenzar.' : `Déjanos tus datos y ${raffle.organizer_name} te contactará para confirmar el pago.`}</p>
           </div>
         </div>
         {closed ? (
@@ -137,14 +142,14 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
           <form onSubmit={reserve}>
             <label>Tu nombre<input ref={nameInput} name="name" value={name} onChange={e => setName(e.target.value)} placeholder="Ej. María Pérez" autoComplete="name" required minLength={2} maxLength={80} /></label>
             <label>WhatsApp / teléfono<input name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="300 000 0000" autoComplete="tel" required minLength={7} maxLength={20} /></label>
-            <button className="reserve-button" disabled={selected === null || saving}>{saving ? 'Separando…' : 'Separar mi número →'}</button>
+            <button className="reserve-button" disabled={selected.length === 0 || saving}>{saving ? 'Separando…' : selected.length > 1 ? 'Separar mis números →' : 'Separar mi número →'}</button>
           </form>
         )}
         <div className="reserve-status" aria-live="polite">
           {error && <p className="error" role="alert">✕ {error}</p>}
-          {reservedNumber !== null && (
+          {reservedNumbers.length > 0 && (
             <div className="after-reserve">
-              <p className="success">✓ ¡Número {formatNumber(reservedNumber)} separado! Ahora coordina el pago con {raffle.organizer_name}.</p>
+              <p className="success">✓ {reservedPlural ? `¡Números ${formatNumberList(reservedNumbers)} separados!` : `¡Número ${formatNumberList(reservedNumbers)} separado!`} Ahora coordina el pago con {raffle.organizer_name}.</p>
               {raffle.organizer_phone && (
                 <a className="btn whatsapp" href={whatsappLink(raffle.organizer_phone, organizerMessage)} target="_blank" rel="noopener noreferrer">Avisar por WhatsApp</a>
               )}

@@ -25,6 +25,19 @@ export function validateNumber(v: unknown): Validated<number> {
   return { ok: true, value: n };
 }
 
+export const MAX_NUMBERS_PER_RESERVATION = 10;
+
+export function validateNumbers(v: unknown): Validated<number[]> {
+  if (!Array.isArray(v) || v.length === 0) return fail('Elige al menos un número');
+  if (v.length > MAX_NUMBERS_PER_RESERVATION) return fail(`Puedes separar hasta ${MAX_NUMBERS_PER_RESERVATION} números a la vez`);
+  const numbers: number[] = [];
+  for (const item of v) {
+    const n = validateNumber(item); if (!n.ok) return n;
+    if (!numbers.includes(n.value)) numbers.push(n.value);
+  }
+  return { ok: true, value: numbers };
+}
+
 export function validateTicketStatus(v: unknown): Validated<TicketStatus> {
   return v === 'reserved' || v === 'paid' ? { ok: true, value: v } : fail('Estado de boleta inválido');
 }

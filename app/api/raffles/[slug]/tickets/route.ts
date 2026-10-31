@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPublicTickets, getRaffleBySlug, reserveTicket } from '@/lib/db';
-import { validateName, validateNumber, validatePhone } from '@/lib/validation';
+import { getPublicTickets, getRaffleBySlug, reserveTickets } from '@/lib/db';
+import { validateName, validateNumbers, validatePhone } from '@/lib/validation';
 import { handle, jsonError, readJson } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -24,12 +24,12 @@ export async function POST(request: Request, props: Params) {
     if (raffle.status !== 'active') return jsonError(409, 'Esta rifa ya está cerrada');
 
     const body = (await readJson(request)) as Record<string, unknown> | null;
-    const number = validateNumber(body?.number); if (!number.ok) return jsonError(400, number.error);
+    const numbers = validateNumbers(body?.numbers); if (!numbers.ok) return jsonError(400, numbers.error);
     const name = validateName(body?.name); if (!name.ok) return jsonError(400, name.error);
     const phone = validatePhone(body?.phone); if (!phone.ok || !phone.value) return jsonError(400, phone.ok ? 'El teléfono es obligatorio' : phone.error);
 
-    const result = await reserveTicket(raffle.id, { number: number.value, buyer_name: name.value, buyer_phone: phone.value });
-    if (result === 'taken') return jsonError(409, 'Ese número ya fue separado');
+    const result = await reserveTickets(raffle.id, { numbers: numbers.value, buyer_name: name.value, buyer_phone: phone.value });
+    if (result === 'taken') return jsonError(409, numbers.value.length > 1 ? 'Alguno de los números ya fue separado. Revisa el tablero y elige de nuevo.' : 'Ese número ya fue separado');
     return NextResponse.json({ status: raffle.status, tickets: await getPublicTickets(raffle.id) }, { status: 201 });
   });
 }
