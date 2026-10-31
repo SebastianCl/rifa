@@ -43,3 +43,6 @@ Thumbs.db
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+
+# pnpm store local
+.pnpm-store/
