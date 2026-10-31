@@ -1,6 +1,6 @@
 # Rifa
 
-Plataforma sencilla para organizar rifas de 100 números (00–99). Cualquiera crea una rifa, comparte el enlace público por WhatsApp y las personas escogen y separan su número. El organizador confirma pagos, libera números y cierra la rifa desde un panel privado.
+Plataforma sencilla para crear y organizar rifas de 100 números (00–99). Cualquiera crea una rifa, comparte el enlace público por WhatsApp y las personas escogen y separan su número. El organizador confirma pagos, libera números y cierra la rifa desde un panel privado.
 
 - **Sin cuentas ni registro.** Cada rifa tiene un enlace público y un enlace secreto de administración.
 - **Sin dobles reservas.** La base de datos garantiza que un número solo puede separarse una vez.
