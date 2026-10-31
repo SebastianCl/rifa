@@ -14,10 +14,11 @@ export const metadata: Metadata = {
   referrer: 'no-referrer'
 };
 
-type Props = { params: { slug: string; token: string } };
+type Props = { params: Promise<{ slug: string; token: string }> };
 
-export default async function AdminPage({ params }: Props) {
-  const raffle = await requireAdmin(params.slug, params.token);
+export default async function AdminPage(props: Props) {
+  const p = await props.params;
+  const raffle = await requireAdmin(p.slug, p.token);
   if (!raffle) notFound();
   const tickets = await getAdminTickets(raffle.id);
 
@@ -29,7 +30,7 @@ export default async function AdminPage({ params }: Props) {
           <span className="status"><i /> Enlace privado</span>
         </nav>
       </section>
-      <AdminPanel raffle={raffle} initialTickets={tickets} token={params.token} />
+      <AdminPanel raffle={raffle} initialTickets={tickets} token={p.token} />
       <footer>
         <span aria-hidden="true">★</span> No compartas este enlace: quien lo tenga puede administrar la rifa <span aria-hidden="true">★</span>
       </footer>

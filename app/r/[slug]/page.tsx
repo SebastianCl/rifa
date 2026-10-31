@@ -9,13 +9,14 @@ import { TOTAL_NUMBERS } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 // Una sola consulta por petición aunque la usen generateMetadata y la página.
 const loadRaffle = cache((slug: string) => getRaffleBySlug(slug));
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const raffle = await loadRaffle(params.slug);
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const p = await props.params;
+  const raffle = await loadRaffle(p.slug);
   if (!raffle) return { title: 'Rifa no encontrada' };
   return {
     title: `${raffle.title} · Rifa`,
@@ -23,8 +24,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function RafflePage({ params }: Props) {
-  const raffle = await loadRaffle(params.slug);
+export default async function RafflePage(props: Props) {
+  const p = await props.params;
+  const raffle = await loadRaffle(p.slug);
   if (!raffle) notFound();
   const tickets = await getPublicTickets(raffle.id);
   const drawDate = formatDate(raffle.draw_date);
@@ -46,7 +48,7 @@ export default async function RafflePage({ params }: Props) {
         <div className="cause-card">
           <div><p className="label">Premio</p><strong>{raffle.prize}</strong></div>
           <div className="card-divider" />
-          <div><p className="label">Cada número</p><strong className="small-price">{money(raffle.ticket_price, raffle.currency)}</strong><p className="muted">{TOTAL_NUMBERS} números · del 00 al 99</p></div>
+          <div><p className="label">Cada número</p><strong className="small-price">{money(raffle.ticket_price, raffle.currency)}</strong><p className="muted">{TOTAL_NUMBERS} números · del 01 al 99</p></div>
           <div className="card-icon" aria-hidden="true">★</div>
         </div>
       </section>

@@ -49,3 +49,8 @@ Thumbs.db
 
 # Claude Code skill links (machine-specific symlinks to .agents/skills)
 .claude/skills/
+
+# Cloudflare (OpenNext / wrangler)
+.open-next/
+.wrangler/
+.dev.vars

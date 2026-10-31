@@ -5,19 +5,21 @@ import { handle, jsonError, readJson } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(_request: Request, props: Params) {
+  const p = await props.params;
   return handle(async () => {
-    const raffle = await getRaffleBySlug(params.slug);
+    const raffle = await getRaffleBySlug(p.slug);
     if (!raffle) return jsonError(404, 'Esta rifa no existe');
     return NextResponse.json({ status: raffle.status, tickets: await getPublicTickets(raffle.id) });
   });
 }
 
-export async function POST(request: Request, { params }: Params) {
+export async function POST(request: Request, props: Params) {
+  const p = await props.params;
   return handle(async () => {
-    const raffle = await getRaffleBySlug(params.slug);
+    const raffle = await getRaffleBySlug(p.slug);
     if (!raffle) return jsonError(404, 'Esta rifa no existe');
     if (raffle.status !== 'active') return jsonError(409, 'Esta rifa ya está cerrada');
 

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { PublicTicket, Raffle, RaffleStatus, TicketStatus } from '@/lib/types';
-import { TOTAL_NUMBERS } from '@/lib/types';
+import { ALL_NUMBERS, TOTAL_NUMBERS } from '@/lib/types';
 import { formatNumber, whatsappLink } from '@/lib/format';
 
 type Props = { raffle: Raffle; initialTickets: PublicTicket[] };
@@ -23,7 +23,7 @@ export default function RaffleBoard({ raffle, initialTickets }: Props) {
   const taken = useMemo(() => new Map<number, TicketStatus>(tickets.map(t => [t.number, t.status])), [tickets]);
   const available = TOTAL_NUMBERS - tickets.length;
   const closed = status !== 'active';
-  const shownNumbers = Array.from({ length: TOTAL_NUMBERS }, (_, i) => i)
+  const shownNumbers = ALL_NUMBERS
     .filter(n => filter === 'all' || (filter === 'available' ? !taken.has(n) : taken.has(n)));
 
   const applyResponse = (data: TicketsResponse) => {

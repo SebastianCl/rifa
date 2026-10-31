@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Raffle, Ticket, TicketStatus } from '@/lib/types';
-import { TOTAL_NUMBERS } from '@/lib/types';
+import { ALL_NUMBERS, TOTAL_NUMBERS } from '@/lib/types';
 import { formatDate, formatNumber, formatShortDate, money, whatsappLink } from '@/lib/format';
 
 type Props = { raffle: Raffle; initialTickets: Ticket[]; token: string };
@@ -33,7 +33,7 @@ export default function AdminPanel({ raffle: initialRaffle, initialTickets, toke
   const closed = raffle.status !== 'active';
   const freeNumbers = useMemo(() => {
     const taken = new Set(tickets.map(t => t.number));
-    return Array.from({ length: TOTAL_NUMBERS }, (_, i) => i).filter(n => !taken.has(n));
+    return ALL_NUMBERS.filter(n => !taken.has(n));
   }, [tickets]);
 
   const api = async (path: string, init: RequestInit, key: string) => {

@@ -7,9 +7,10 @@ import { handle, jsonError, readJson } from '@/lib/api';
 export const dynamic = 'force-dynamic';
 
 /** Reserva manual del organizador (venta presencial). Puede nacer ya pagada. */
-export async function POST(request: Request, { params }: { params: { slug: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ slug: string }> }) {
+  const p = await props.params;
   return handle(async () => {
-    const raffle = await requireAdmin(params.slug, request.headers.get('x-admin-token'));
+    const raffle = await requireAdmin(p.slug, request.headers.get('x-admin-token'));
     if (!raffle) return jsonError(404, 'Esta rifa no existe');
 
     const body = (await readJson(request)) as Record<string, unknown> | null;

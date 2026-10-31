@@ -6,13 +6,14 @@ import { handle, jsonError, readJson } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
-type Params = { params: { slug: string; number: string } };
+type Params = { params: Promise<{ slug: string; number: string }> };
 
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: Request, props: Params) {
+  const p = await props.params;
   return handle(async () => {
-    const raffle = await requireAdmin(params.slug, request.headers.get('x-admin-token'));
+    const raffle = await requireAdmin(p.slug, request.headers.get('x-admin-token'));
     if (!raffle) return jsonError(404, 'Esta rifa no existe');
-    const number = validateNumber(params.number); if (!number.ok) return jsonError(400, number.error);
+    const number = validateNumber(p.number); if (!number.ok) return jsonError(400, number.error);
     const body = (await readJson(request)) as Record<string, unknown> | null;
     const status = validateTicketStatus(body?.status); if (!status.ok) return jsonError(400, status.error);
 
@@ -22,11 +23,12 @@ export async function PATCH(request: Request, { params }: Params) {
   });
 }
 
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: Request, props: Params) {
+  const p = await props.params;
   return handle(async () => {
-    const raffle = await requireAdmin(params.slug, request.headers.get('x-admin-token'));
+    const raffle = await requireAdmin(p.slug, request.headers.get('x-admin-token'));
     if (!raffle) return jsonError(404, 'Esta rifa no existe');
-    const number = validateNumber(params.number); if (!number.ok) return jsonError(400, number.error);
+    const number = validateNumber(p.number); if (!number.ok) return jsonError(400, number.error);
 
     const released = await releaseTicket(raffle.id, number.value);
     if (!released) return jsonError(404, 'Ese número no está reservado');

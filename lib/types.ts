@@ -42,4 +42,5 @@ export type RaffleInput = {
 
 export type RaffleUpdate = Partial<RaffleInput> & { status?: RaffleStatus };
 
-export const TOTAL_NUMBERS = 100;
+export const TOTAL_NUMBERS = 99;
+export const ALL_NUMBERS = Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1);
