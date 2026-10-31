@@ -8,7 +8,10 @@ export function getSupabase(): SupabaseClient {
   if (client) return client;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY. Revisa .env.local (ver README).');
+  if (!url || !key) {
+    const missing = [!url && 'SUPABASE_URL', !key && 'SUPABASE_SERVICE_ROLE_KEY'].filter(Boolean).join(' y ');
+    throw new Error(`Falta ${missing}. En local revisa .env.local; en Cloudflare agrégala como Secret del Worker (ver README).`);
+  }
   client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     // Next 14 cachea fetch por defecto; las lecturas deben ser siempre frescas.
