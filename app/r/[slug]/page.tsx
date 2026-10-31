@@ -48,7 +48,7 @@ export default async function RafflePage(props: Props) {
         <div className="cause-card">
           <div><p className="label">Premio</p><strong>{raffle.prize}</strong></div>
           <div className="card-divider" />
-          <div><p className="label">Cada número</p><strong className="small-price">{money(raffle.ticket_price, raffle.currency)}</strong><p className="muted">{TOTAL_NUMBERS} números · del 01 al 99</p></div>
+          <div><p className="label">Cada número</p><strong className="small-price">{money(raffle.ticket_price, raffle.currency)}</strong><p className="muted">{TOTAL_NUMBERS} números · del 00 al 99</p></div>
           <div className="card-icon" aria-hidden="true">★</div>
         </div>
       </section>
