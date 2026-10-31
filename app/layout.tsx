@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Rifa · Todos por Mafe',
-  description: 'Elige tu número y apoya el tratamiento de Mafe Quejada Loaiza.'
+  title: 'Rifa · Organiza tu rifa en minutos',
+  description: 'Crea una rifa, comparte el enlace y deja que cada persona escoja su número.'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
