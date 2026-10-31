@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "rifa-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 3000 }
+    { "name": "rifa-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 3000 },
+    { "name": "rifa-next", "runtimeExecutable": "node", "runtimeArgs": ["node_modules/next/dist/bin/next", "dev"], "port": 3000 }
   ]
 }
