@@ -21,7 +21,7 @@ export function validatePhone(v: unknown, required = true): Validated<string | n
 
 export function validateNumber(v: unknown): Validated<number> {
   const n = typeof v === 'string' ? Number(v) : v;
-  if (typeof n !== 'number' || !Number.isInteger(n) || n < 1 || n > 99) return fail('El número debe estar entre 01 y 99');
+  if (typeof n !== 'number' || !Number.isInteger(n) || n < 0 || n > 99) return fail('El número debe estar entre 00 y 99');
   return { ok: true, value: n };
 }
 

@@ -21,7 +21,7 @@ export default function Home() {
       </section>
 
       <footer>
-        <span aria-hidden="true">★</span> 99 números del 01 al 99 · sin números repetidos · panel para el organizador <span aria-hidden="true">★</span>
+        <span aria-hidden="true">★</span> 100 números del 00 al 99 · sin números repetidos · panel para el organizador <span aria-hidden="true">★</span>
       </footer>
     </main>
   );
